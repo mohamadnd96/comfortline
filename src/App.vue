@@ -1,8 +1,8 @@
 <template>
   <v-app>
-    <Alert />
-    <loading />
-    <NavigationBar v-if="user" />
+    <Alert />                       <!--alert message if user did some error or success message (default hidden)--> 
+    <loading />                     <!--spinner (default hidden)-->
+    <NavigationBar v-if="user" />   <!--navbar on the left, shows only if user is logged in-->
   </v-app>
 </template>
 
@@ -11,24 +11,24 @@ import NavigationBar from './components/NavigationBar.vue';
 import Loading from './components/Loading.vue';
 import Alert from './components/Alert.vue';
 export default {
-  components: { NavigationBar, Loading, Alert },
+  components: { NavigationBar, Loading, Alert },        // used components
   name: 'App',
 
   data: () => ({
     loaded: false
   }),
 
-  computed: {
+  computed: {                                           // compute user from back end  
     user() {
       return this.$store.state.user;
     }
   },
 
-  async beforeMount() {
-    this.$store.commit('load')
+  async beforeMount() {                                 // todo before loading the app
+    this.$store.commit('load')                          // call the load function (spinner while the website is loading)
     await new Promise(resolve => setTimeout(resolve, 1100))
-    await this.$store.commit('islogged')
-    this.$store.commit('endload')
+    await this.$store.commit('islogged')                // wait until the user is logged in (function in store/index.js)
+    this.$store.commit('endload')                       // function in index.js
   }
 
 }

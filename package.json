@@ -15,13 +15,11 @@
     "html-pdf-node": "^1.0.8",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
-    "puppeteer": "^19.11.1",
     "qrcode": "^1.5.3",
     "roboto-fontface": "*",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
     "vuefire": "^3.0.1",
-    "vuejs-datepicker": "^1.6.2",
     "vuetify": "^3.0.0-beta.0",
     "vuex": "^4.0.0",
     "webfontloader": "^1.0.0"

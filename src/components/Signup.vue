@@ -74,14 +74,14 @@ export default {
     email: "",
     password: "",
     repassword: "",
-    rules: [(v) => !!v || "Required"],
+    rules: [(v) => !!v || "Required"],                        // rule applied to the text fields (red with required when deleted text)
   }),
 
   methods: {
     async validate() {
       const { valid } = await this.$refs.form.validate();
 
-      if (valid)
+      if (valid)                                              // if form is validated, sign up
         this.$store.dispatch("signup", {
           email: this.email,
           pass: this.password,

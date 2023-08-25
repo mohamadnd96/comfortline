@@ -6,7 +6,7 @@ const routes = [
 
   {
     path: "/home/:question?",
-    name: "home",
+    name: "home",                                                     // Dashboard
     component: HomeView,
   },
   // {
@@ -35,7 +35,7 @@ const routes = [
     component: () => import("../components/om/Buildings.vue"),
   },
   {
-    path: "/buildings/addmanager/:id?",
+    path: "/buildings/addmanager/:id?",                             // if ?, this route will read from the URL (not static)
     name: "addmanager",
     props: true,
     component: () => import("../components/om/AddManager.vue"),

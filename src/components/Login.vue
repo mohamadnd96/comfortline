@@ -6,7 +6,7 @@
       color="var(--maincolor)"
       style="padding: 30px; flex-grow: 1;"
       class="mx-auto centers"
-    >
+    > <!-- Outline of the login window (vuetify v-card)-->
       <v-form ref="form" @submit.prevent="validate" autocomplete>
         <div style="text-align: center">
           <div class="text-h4 pb-4 pt-2 color btext">Sign In</div>
@@ -40,7 +40,7 @@
           required
         ></v-text-field>
         <div class="d-flex flex-column">
-          <v-btn variant="tonal" class="mt-4 mainbtn" block type="submit">
+          <v-btn variant="tonal" class="mt-4 mainbtn" block type="submit"> <!-- on submit, sign in-->
             Sign in
           </v-btn>
           <v-btn variant="tonal" class="mt-4 yellowbtn" block @click="signup">
@@ -61,7 +61,7 @@ export default {
     valid: false,
     email: "",
     password: "",
-    rules: [(v) => !!v || "Required"],
+    rules: [(v) => !!v || "Required"], // if type then delete
   }),
 
   methods: {

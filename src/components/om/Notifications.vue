@@ -141,7 +141,7 @@
 <script>
 import SingleChart from "../SingleChart.vue";
 import Chart from "chart.js";
-import GetChart from "../chartdata";
+import {getPieChart} from "../chartdata";
 export default {
   components: { SingleChart },
   props: [],
@@ -371,7 +371,7 @@ export default {
       });
       new Chart(
         document.getElementById('answers'),
-        GetChart("pie", "chart", {
+        getPieChart("pie", "chart", {
           data: this.answerschartdata.data,
           colors: this.answerschartdata.properties.colors,
           labels: this.answerschartdata.properties.labels,
@@ -380,7 +380,7 @@ export default {
 
       new Chart(
         document.getElementById('arates'),
-        GetChart("pie", "chart", {
+        getPieChart("pie", "chart", {
           data: [this.rateschartdata.voted, this.rateschartdata.notvoted],
           colors: this.rateschartdata.properties.colors,
           labels: this.rateschartdata.properties.labels,

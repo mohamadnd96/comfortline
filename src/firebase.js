@@ -1,3 +1,4 @@
+// FILE REPONSIBLE FOR PAIRING OUR APP TO THE FIREBASE
 import { initializeApp } from 'firebase/app'
 import { getDatabase } from 'firebase/database'
 import { getAuth } from 'firebase/auth'
@@ -15,8 +16,8 @@ export const firebaseApp = initializeApp({
     measurementId: "G-918D3N6JPF"
 })
 
-export const auth = getAuth()
-export const db = getDatabase(firebaseApp)
+export const auth = getAuth() // export this file (java script fonctionality)
+export const db = getDatabase(firebaseApp) // pass the firebase to the database of our app
 // export function users(uid) {
 //  return useDatabaseObject(dbRef(db, 'uids/' + uid))
 // }

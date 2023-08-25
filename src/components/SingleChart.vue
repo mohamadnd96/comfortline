@@ -1,9 +1,7 @@
 <template>
     <v-col cols="12" lg="3" style="margin-right: -15px">
-
         <v-card min-height="260" variant="tonal" color="var(--maincolor)">
-     
-            <v-card-item>
+            <v-card-item>                                                                                               <!-- LABELS -->
                 <div class="text-overline mb-1" style="white-space: nowrap">{{ title }}</div>
                 <div v-if="notis ? this.$store.state.notificationsdata : this.$store.state.feedbackresult">
                     <div v-for="(key, index) in  q == 'v' ? labels : labels[q]" v-bind:key="index">
@@ -41,7 +39,7 @@
             </v-card-item>
         </v-card>
     </v-col>
-    <v-col cols="12" lg="3">
+    <v-col cols="12" lg="3">                                                                                               <!-- SINGLE CHART DOESN'T DRAW THE CHART, JUST THE CANVAS -->
         <v-card min-height="260" variant="tonal" color="var(--maincolor)">
             <v-card-item>
                 <div>
@@ -59,7 +57,7 @@
 import Vchart from "./Chart.vue";
 export default {
     components: { Vchart },
-    props: ['data', 'labels','colors', 'id', 'title', 'switchview', 'hide', 'notis', 'q'],
+    props: ['data', 'labels','colors', 'id', 'title', 'switchview', 'hide', 'notis', 'q'],  // parameters
     computed: {
         total() {
             return this.data.reduce((a, b) => a + b, 0);

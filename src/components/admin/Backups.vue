@@ -24,13 +24,13 @@ export default {
     };
   },
   computed: {
-    process() {
+    process() {                                       // process = backupprocess\
       return this.$store.state.backupprocess
     }
   },
   methods: {
     backup() {
-      this.$store.dispatch('archiveAllData')
+      this.$store.dispatch('archiveAllData')          // go to archive all data (in index.js)
     },
   },
 };

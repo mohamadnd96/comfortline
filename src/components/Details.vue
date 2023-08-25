@@ -42,7 +42,7 @@
 // import Vchart from "./Chart.vue";
 import SingleChart from "./SingleChart.vue";
 import Chart from "chart.js";
-import GetChart from "./chartdata";
+import {getPieChart} from "./chartdata";
 export default {
     components: { SingleChart },
     props: ['chartdata', 'chart2data', 'texts'],
@@ -90,7 +90,7 @@ export default {
             }
             new Chart(
                 document.getElementById('chart1'),
-                GetChart("pie", "chart", {
+                getPieChart("pie", "chart", {
                     labels: this.chartdata.properties.labels[path],
                     colors: this.chartdata.properties.colors,
                     data: this.chartdata.data[path]
@@ -98,7 +98,7 @@ export default {
             );
             new Chart(
                 document.getElementById('chart11'),
-                GetChart("pie", "chart", {
+                getPieChart("pie", "chart", {
                     labels: this.chartdata.properties.labels[path],
                     colors: this.chartdata.properties.colors,
                     data: this.chartdata.data[path].filter((item, index) => index !== 9)
@@ -106,14 +106,14 @@ export default {
             );
             new Chart(
                 document.getElementById('detailschart'),
-                GetChart("bar", "chart", {
+                getPieChart("bar", "chart", {
                     labels: this.$store.state.feedbackresult.labels,
                     data: this.$store.state.feedbackresult.details[path]
                 })
             );
             new Chart(
                 document.getElementById('rates'),
-                GetChart("pie", "chart", {
+                getPieChart("pie", "chart", {
                     labels: this.chart2data.properties.labels,
                     colors: this.chart2data.properties.colors,
                     data: this.chart2data[path].data

@@ -11,7 +11,6 @@
                 <v-btn :style="backColor" v-on:click="action">Yes</v-btn>
             </div>
         </v-col>
-
     </v-alert>
 </template>
 
@@ -39,7 +38,7 @@ export default {
             } else if (this.alert.title == null) {
                 return 'Comfortline'
             } else {
-                return this.alert.title
+                return this.alert.title 
             }
         }
     },

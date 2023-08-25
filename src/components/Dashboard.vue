@@ -1,9 +1,9 @@
 <template>
-  <div v-if="this.$store.state.user.hasbuilding || this.$store.state.user.admin">
+  <div v-if="this.$store.state.user.hasbuilding || this.$store.state.user.admin"> <!--Either you are a owner with a building, or you're an admin-->
     <div v-if="buildings.length">
       <div class="text-h5 pb-6 pt-2">{{ pagetitle }}</div>
-      <v-row>
-        <v-col cols="12" lg="2">
+      <v-row>                                                                         <!-- FILTERS AND DATE -->
+        <v-col cols="12" lg="2">                                            
           <div class="text-center">
             <v-select variant="outlined" v-model="selectedBuilding" :items="buildings" label="Building" item-title="name"
               item-value="nr" return-object></v-select>
@@ -22,7 +22,7 @@
           </div>
         </v-col>
         <v-col cols="12" lg="4" style="max-width: 500px">
-          <div class="datepicker">
+          <div class="datepicker">                                           <!--HTML Datepicker-->
             <div class="formfield">
               <div class="d-col" style="width: 100%">
                 <label>Date range</label>
@@ -44,8 +44,9 @@
           </div>
         </v-col>
       </v-row>
-      <div v-if="ishome">
+      <div v-if="ishome">                                                     <!--if we are on the dashboard without any selection (question = ex: airquality)-->
         <v-row justify="start">
+          <LineGraph :id="'lines'" :title="'Overview'"/>
           <SingleChart :hide="true" :title="'Voting Rates'" :id="'rates'" :q="'v'" :labels="chart2data.properties.labels"
             :colors="chart2data.properties.colors" :data="chart2data.all.data" :total="chart2data.total" />
         </v-row>
@@ -78,20 +79,19 @@
 // import Vchart from "./Chart.vue";
 import SingleChart from "./SingleChart.vue";
 import Chart from "chart.js";
-import GetChart from "./chartdata";
+import {getPieChart} from "./chartdata";
+import {getLineChart} from "./chartdata";
 import Details from "./Details.vue";
+import LineGraph from "./LineGraph.vue";
 export default {
   name: "HelloWorld",
-
-
-  components: { SingleChart, Details },
+  components: { SingleChart, Details, LineGraph },
 
   computed: {
     ishome() {
       return this.$route.params.question == '' || typeof this.$route.params.question == "undefined"
     },
     pagetitle() {
-
       if (typeof this.$route.params.question != "undefined") {
         if (this.$route.params.question.includes('air')) {
           return 'Air quality answers details'
@@ -126,7 +126,6 @@ export default {
         return []
       }
     },
-
     spaces() {
       if (this.$store.state.homefilters.buildings[this.selectedBuilding.nr]) {
 
@@ -135,28 +134,15 @@ export default {
         return []
       }
     },
-
-    // spaces() {
-    //   return this.$store.state.homefilters.buildings[this.selectedBuilding] ? this.$store.state.homefilters.buildings[this.selectedBuilding].spaces : [];
-    // },
-
-    chartdata() {
+    chartdata() {                                           // HVAC data
       if (this.$store.state.feedbackresult) {
         return this.$store.state.feedbackresult.data1;
       } else {
         return this.ichartdata;
       }
     },
-    // chartdata2() {
-    //   if (this.$store.state.feedbackresult) {
-    //     return this.$store.state.feedbackresult.data1;
-    //   } else {
-    //     return this.ichartdata;
-    //   }
-    // },
-    chart2data() {
+    chart2data() {                                          // rates data
       if (this.$store.state.feedbackresult) {
-
         return this.$store.state.feedbackresult.voterates;
       } else {
         return {
@@ -168,11 +154,10 @@ export default {
             colors: ["#375A64", "#dddddd"],
             labels: ["Voted", "Not voted"],
           }
-
         };
       }
     },
-    chart3data() {
+    chart3data() {                                          // test example ?
       if (this.$store.state.feedbackresult) {
         return this.$store.state.feedbackresult.data3;
       } else {
@@ -193,14 +178,30 @@ export default {
         };
       }
     },
+    chartlinedata() {                                       // line data
+      if (this.$store.state.feedbackresult) {
+        return this.$store.state.feedbackresult.linedata;
+      } else {
+        return this.linedata
+      }
+    }
   },
-
+    // spaces() {
+    //   return this.$store.state.homefilters.buildings[this.selectedBuilding] ? this.$store.state.homefilters.buildings[this.selectedBuilding].spaces : [];
+    // },
+    // chartdata2() {
+    //   if (this.$store.state.feedbackresult) {
+    //     return this.$store.state.feedbackresult.data1;
+    //   } else {
+    //     return this.ichartdata;
+    //   }
+    // },
   updated() {
     if ((this.$route.params.question == '' || typeof this.$route.params.question == "undefined") && this.$store.state.feedbackresult) {
       this.updateChart()
     }
   },
-  async mounted() {
+  async mounted() {                                         // automaticly done before loading the page
     // console.log(this.$route.params)
     // alert("mount");
     if (this.$store.state.user.hasbuilding || this.$store.state.user.admin) {
@@ -210,7 +211,7 @@ export default {
       this.selectedBuilding = Object.values(
         this.$store.state.homefilters.buildings
       ).at(0).data;
-      await this.$store.dispatch("getHomeData", {
+      await this.$store.dispatch("getHomeData", {       // gets all the data for dashboard from bach end
         building: this.selectedBuilding.nr,
         space: this.selectedSpace.nr,
         interval: this.datesarray,
@@ -220,7 +221,50 @@ export default {
 
   },
   data: () => ({
-    ichartdata: {
+    linedata: {
+      properties: {
+        colors: [
+          "#58FAF4",
+          "#FA5858",
+          "#82FA58",
+          "#FA58F4",
+        ],
+        labels: {
+          "xAxis": [
+            "jan",
+            "feb",
+            "mar",
+            "avr",
+            "may",
+            "jun",
+            "jul",
+            "aug",
+            "sep",
+            "oct",
+            "nov",
+            "dec"
+          ],
+          "yAxis": [
+            "Happy",
+            "Neutral",
+            "Sad"
+          ],
+          "line": [
+            "Air Quality",
+            "Thermal Comfort",
+            "Visual Comfort",
+            "Acoustic Comfort"
+          ]
+        }
+      },
+      data: {
+        "a": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "b": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        "c": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+        "d": [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+      }
+    },
+    ichartdata: {                                           // default HVAC data
       properties: {
         colors: [
           "#87bd45",
@@ -279,7 +323,6 @@ export default {
             "Sad A3"
           ]
         }
-
       },
       data: {
         "a": [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -313,11 +356,10 @@ export default {
     },
     selectedSpace: function () {
       this.settimestamps(true)
-
     },
   },
   methods: {
-    updateChart() {
+    updateChart() {                                                                       // main graphs
       if (this.$route.params.question == '' || typeof this.$route.params.question == "undefined") {
         let cdata = {
           "a": "chart1",
@@ -325,27 +367,29 @@ export default {
           "c": "chart3",
           "d": "chart4"
         }
-
-        for (const key in cdata) {
+        for (const key in cdata) {                                                      // HVAC Graph
           new Chart(
             document.getElementById(cdata[key]),
-            GetChart("pie", "chart", {
+            getPieChart("pie", "chart", {
               labels: this.chartdata.properties.labels[key].filter((item, index) => index !== 9),
               colors: this.chartdata.properties.colors,
               data: this.chartdata.data[key].filter((item, index) => index !== 9)
             })
           );
         }
-        new Chart(
+        new Chart(                                                                      // rates
           document.getElementById('rates'),
-          GetChart("pie", "chart", {
+          getPieChart("pie", "chart", {
             labels: this.chart2data.properties.labels,
             colors: this.chart2data.properties.colors,
             data: this.chart2data.all.data
           })
         );
-
-      } else {
+        new Chart(
+          document.getElementById('lines'),
+          getLineChart(this.chartlinedata)
+        )
+      } else {                                                                          // details graphs
         let path = ''
         if (this.$route.params.question.includes('air')) {
           path = 'a'
@@ -364,7 +408,7 @@ export default {
         new Chart(
           document.getElementById('chart1'),
 
-          GetChart("pie", "chart", {
+          getPieChart("pie", "chart", {
             labels: this.chartdata.properties.labels[path],
             colors: this.chartdata.properties.colors,
             data: this.chartdata.data[path]
@@ -372,7 +416,7 @@ export default {
         );
         new Chart(
           document.getElementById('chart11'),
-          GetChart("pie", "chart", {
+          getPieChart("pie", "chart", {
             labels: this.chartdata.properties.labels[path],
             colors: this.chartdata.properties.colors,
             data: this.chartdata.data[path].filter((item, index) => index !== 9)
@@ -380,7 +424,7 @@ export default {
         );
         new Chart(
           document.getElementById('rates'),
-          GetChart("pie", "chart", {
+          getPieChart("pie", "chart", {
             labels: this.chart2data.properties.labels,
             colors: this.chart2data.properties.colors,
             data: this.chart2data[path].data
@@ -388,12 +432,11 @@ export default {
         );
         new Chart(
           document.getElementById('detailschart'),
-          GetChart("bar", "chart", {
+          getPieChart("bar", "chart", {
             labels: this.$store.state.feedbackresult.labels,
             data: this.$store.state.feedbackresult.details[path]
           })
         );
-
       }
     },
     archiveAllData() {
@@ -433,20 +476,17 @@ export default {
           rcase: this.rcase
         });
         if (this.$store.state.feedbackresult) {
-
           this.updateChart();
         }
       }
     },
   },
-
   unmounted() {
     this.$store.commit('clearhomefilters');
     this.$store.commit('clearfeedbackresult')
   }
 };
 </script>
-
 
 <style>
 .datepicker {

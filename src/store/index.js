@@ -1,7 +1,7 @@
 import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
+  signInWithEmailAndPassword,                         // FireBase plugin
+  createUserWithEmailAndPassword,                  
+  signOut,                                        
 } from "firebase/auth";
 import { createStore } from "vuex";
 import { auth, db } from "@/firebase";
@@ -23,7 +23,7 @@ import {
 } from "firebase/storage";
 
 import router from "@/router";
-export default createStore({
+export default createStore({                                              // initializes and stores the variables of the application
   state: {
     user: null,
     progress: 0,
@@ -33,7 +33,7 @@ export default createStore({
       buildings: {}, filled: false
     },
     emails: null,
-    feedbackresult: null,
+    feedbackresult: null,                                                // FEEDBACK RESULT IS THE DATA FOR THE DASHBOARD 
     notificationsdata: null,
     fetchingfeedbacks: false,
     homefilters: { buildings: { spaces: [], floors: [] }, filled: false },
@@ -48,10 +48,11 @@ export default createStore({
     alert: null,
   },
   getters: {},
-  mutations: {
+  mutations: {                                                          // mutations are quick functions, NO COMMUNICATION W/ THE BACK-END (unlike actions)
     load(state) {
       state.loading = true;
     },
+
     async islogged(state) {
       state.user = null
       if (auth.currentUser) {
@@ -85,17 +86,20 @@ export default createStore({
         if (routeName != 'contactus' && routeName != 'signup' && routeName != 'login') {
           router.push({ name: "login" });
         }
-
         return false;
       }
     },
+
     endload(state) {
       state.loading = false;
     },
+
     showalert(state, data) {
       state.alert = data;
     },
+
     setnotificationsEntries(state, data) { state.notificationsEntries = data },
+
     clearnotificationsEntries(state) {
       state.notificationsEntries = {
         buildings: {}
@@ -109,25 +113,32 @@ export default createStore({
     cab(state) {
       state.adminbuildings = null;
     },
+
     clearhomefilters(state) {
       state.homefilters = { buildings: {}, filled: false }
     },
+
     clearfeedbackresult(state) {
       state.feedbackresult = null
     },
+
     comb(state) {
       state.omb = null;
     },
+
     seteditbuilding(state, data) {
       state.editbuilding = data;
     },
+
     clearuidemails(state) {
       state.uidemails = null;
     },
+
     clearemails(state) {
       state.emails = null;
     },
   },
+
   actions: {
     signout() {
       signOut(auth);
@@ -152,8 +163,7 @@ export default createStore({
         context.commit("endload");
       });
     },
-
-
+    
     deleteBuilding(context, data) {
       context.commit("showalert", {
         text: "Are you sure you want to delete bulding " + data + " permanently with all its floors and spaces?",
@@ -182,20 +192,20 @@ export default createStore({
         text: "Before starting backup, Please make sure that you have a stable internet connection, Do you want to proceed?",
         action: () => {
           context.commit("closealert");
-          const dbRef = ref(getDatabase());
+          const dbRef = ref(getDatabase());                             // we want to read data from the database 
           get(child(dbRef, "allData")).then(async (response) => {
             if (response.val()) {
               context.commit("load");
               const storage = getStorage();
               let error = false;
               try {
-                context.state.backupprocess.running = true;
-                context.state.backupprocess.tb = response.size;
-                for (const key in response.val()) {
+                context.state.backupprocess.running = true;                     // process
+                context.state.backupprocess.tb = response.size; 
+                for (const key in response.val()) {                             // key = building
                   context.state.backupprocess.tf = response.child(key).size;
                   context.state.backupprocess.building += 1;
                   context.state.backupprocess.file = 0;
-                  for (const key1 in response.val()[key]) {
+                  for (const key1 in response.val()[key]) {                     // key1 = file
                     context.state.backupprocess.file += 1;
                     var jsonfile = JSON.stringify(response.val()[key][key1]);
                     var blobfile = new Blob([jsonfile], {
@@ -210,7 +220,7 @@ export default createStore({
                     });
                   }
                 }
-              } catch (e) {
+              } catch (e) {                                 // backup unsuccessful
                 context.state.backupprocess = {
                   running: false,
                   building: 0,
@@ -225,7 +235,7 @@ export default createStore({
                   text: "Backup failed",
                 });
               }
-              if (!error) {
+              if (!error) {                                  // backup sucessful
                 context.state.backupprocess = {
                   running: false,
                   building: 0,
@@ -239,7 +249,7 @@ export default createStore({
                   text: "Backup complete",
                 });
               }
-            } else {
+            } else {                                        // no data to backup 
               // set(ref(db, 'allData/0001'), 'true')
               context.commit("showalert", {
                 type: "error",
@@ -250,19 +260,6 @@ export default createStore({
         },
       });
     },
-
-    // readFromStorage() {
-    //   const storage = getStorage();
-    //   const pathReference = stref(storage, "0002/1677369600000.json");
-    //   getDownloadURL(pathReference).then(function (url) {
-    //     fetch(url)
-    //       .then((response) => response.json())
-    //       .then((data) => {
-    //         console.log(data);
-    //       });
-    //   });
-    // },
-
 
     getAdminBuildings(context) {
       context.commit("load");
@@ -279,14 +276,12 @@ export default createStore({
       });
     },
 
-    async getHomeData(context, data) {
-      // console.log(data)
+    async getHomeData(context, data) {          // BIG FUNCTION -> GET'S THE DATA FOR DASHBOARD FROM BACK END
       context.state.feedbackresult = null;
       let allSpaces = data.space == 0;
       let selectedbuilding = data.building;
       let selectedspace = data.space;
       const dbRef = ref(getDatabase());
-
       let properties = {
         colors: [
           "#87bd45",
@@ -343,8 +338,37 @@ export default createStore({
           ]
         }
       }
-
-      let resul_t = {
+      let line_result = {                       // data for the line graph
+        properties: {
+          colors: [
+            "#58FAF4",
+            "#FA5858",
+            "#82FA58",
+            "#FA58F4",
+          ],
+          labels: {
+            "xAxis": [],
+            "yAxis": [
+              "Happy",
+              "Neutral",
+              "Sad"
+            ],
+            "line": [
+              "Air Quality",
+              "Thermal Comfort",
+              "Visual Comfort",
+              "Acoustic Comfort"
+            ]
+          }
+        },
+        data: {
+          "a": [],
+          "b": [],
+          "c": [],
+          "d": [],
+        },
+      }
+      let resul_t = {                           // data for the pie graphs
         properties: properties,
         data:
         {
@@ -359,9 +383,16 @@ export default createStore({
           "c": 0,
           "d": 0,
         }
-
       }
-      // let votedusers = []
+      let resul_t2 = {                          // like result but resets for every date (used for line graph)
+        data:
+        {
+          "a": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "b": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "c": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "d": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+      }
       let validdays = 0;
       let voterates = {
         a: [],
@@ -374,26 +405,159 @@ export default createStore({
       let dbpath = "";
       let dbsource = "";
       if (allSpaces) {
-        dbsource = "feedbackBuilding/";
+        dbsource = "feedbackBuilding/";                                       // when the user selects the building only
         dbpath = selectedbuilding + "/";
       } else {
-        dbsource = "feedbackBuildingSpace/";
+        dbsource = "feedbackBuildingSpace/";                                  // when the user also selects a space
         dbpath = selectedbuilding + "/" + data.space;
       }
       let dataResult = [];
-      let detailsdata = {
+      let detailsdata = {                                                     // for "More details" tabs
         "a": [{ data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] },],
         "b": [{ data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] },],
         "c": [{ data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] },],
         "d": [{ data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] }, { data: [0] },],
       }
       let rangelabels = []
-
       context.commit("load");
+    if (data.rcase == 1) {                                                    // rcase 1: today's date selected in the date picker
+      line_result.properties.labels["xAxis"] = [new Date(data.interval[0])
+      .toISOString()
+      .split("T")[0]];                                      
+      for (const key in detailsdata) {
+        for (const index in detailsdata[key]) {
+          detailsdata[key][index].data[0] = 0
+          detailsdata[key][index].backgroundColor = properties.colors[index]
+          detailsdata[key][index].label = properties.labels[key][index]
+        }
+      }
+      await get(
+        child(
+          dbRef,
+          allSpaces
+            ? "buildings/" + selectedbuilding + "/users"
+            : "spacesID/" + selectedspace + "/users"
+        )
+      ).then((users) => {
+        if (users.val()) {
+          voterates.totalusers = Object.keys(users.val()).length;
+        }
+      });
+      await get(child(dbRef, dbsource + dbpath)).then(async (response) => {
+        if (response.val()) {                                                     // Object.keys(response.val()) = list of all user voting
+          let totalvotes = Object.keys(response.val()).length
+          for (const key in response.val()) {                                     // iterate on users
+            let user = response.val()[key];
+            if (!voterates.all.includes(key)) {                                   // add user to all the user who voted (if not already)
+              voterates.all.push(key)
+            }
+            for (const key2 in response.val()[key].feedback) {                    // iterate on all answers
+              let question = key2;
+              if (!voterates[question].includes(key)) {
+                voterates[question].push(key)
+              }
+              detailsdata[question][9]['data'][0] = voterates.totalusers - totalvotes
+              resul_t.data[question][9] = voterates.totalusers - totalvotes
+              if (user.feedback[question].a == 1) {                                               // HAPPY
+                detailsdata[question][0]['data'][0] += 1
+                resul_t.data[question][0] += 1
 
-      if (data.rcase == 3 || data.rcase == 2) {
+              } else if (user.feedback[question].a == 2) {                                        // NEUTRAL
+                if (user.feedback[question].s == 0) {
+                  detailsdata[question][1]['data'][0] += 1
+                  resul_t.data[question][1] += 1
+
+                }
+                if (user.feedback[question].s == 1) {
+                  detailsdata[question][2]['data'][0] += 1
+                  resul_t.data[question][2] += 1
+                }
+                if (user.feedback[question].s == 2) {
+                  detailsdata[question][3]['data'][0] += 1
+                  resul_t.data[question][3] += 1
+                }
+                if (user.feedback[question].s == 3) {
+                  detailsdata[question][4]['data'][0] += 1
+                  resul_t.data[question][4] += 1
+                }
+              } else if (user.feedback[question].a == 3) {                                        // SAD
+                if (user.feedback[question].s == 0) {
+                  detailsdata[question][5]['data'][0] += 1
+                  resul_t.data[question][5] += 1
+                }
+                if (user.feedback[question].s == 1) {
+                  detailsdata[question][6]['data'][0] += 1
+                  resul_t.data[question][6] += 1
+                }
+                if (user.feedback[question].s == 2) {
+                  detailsdata[question][7]['data'][0] += 1
+                  resul_t.data[question][7] += 1
+                }
+                if (user.feedback[question].s == 3) {
+                  detailsdata[question][8]['data'][0] += 1
+                  resul_t.data[question][8] += 1
+                }
+              }
+
+            }
+          }
+        }
+      });
+      let questions = ["a", "b", "c", "d"]
+      for (let index = 0; index < questions.length; index++) {
+        let result = resul_t.data[questions[index]]
+        let happy = result[0]
+        let neutral = result[1] + result[2] + result[3] + result[4]
+        let sad = result[5] + result[6] + result[7] + result[8]
+        if (happy >= neutral && happy >= sad) {
+          line_result.data[questions[index]].push(2)
+        } else if (neutral >= happy && neutral >= sad) {
+          line_result.data[questions[index]].push(1)
+        } else {
+          line_result.data[questions[index]].push(0)
+        }
+      }
+      context.state.feedbackresult = {
+        linedata: line_result,
+        data1: resul_t,
+        details: detailsdata,
+        labels: [new Date(data.interval[0])
+          .toISOString()
+          .split("T")[0]],
+        voterates: {
+          a: {
+            data: [voterates.a.length, voterates.totalusers - voterates.a.length],
+            percentage: (voterates.a.length / voterates.totalusers) * 100
+          },
+          b: {
+            data: [voterates.a.length, voterates.totalusers - voterates.b.length],
+            percentage: (voterates.b.length / voterates.totalusers) * 100
+          },
+          c: {
+            data: [voterates.a.length, voterates.totalusers - voterates.c.length],
+            percentage: (voterates.c.length / voterates.totalusers) * 100
+          },
+          d: {
+            data: [voterates.a.length, voterates.totalusers - voterates.d.length],
+            percentage: (voterates.d.length / voterates.totalusers) * 100
+          },
+          all: {
+            data: [voterates.all.length, voterates.totalusers - voterates.all.length],
+            percentage: (voterates.all.length / voterates.totalusers) * 100
+          },
+          total: voterates.totalusers,
+          properties: {
+            colors: ["#375A64", "#dddddd"],
+            labels: ["Voted", "Not voted"],
+          }
+        },
+      };
+      console.log(context.state.feedbackresult)
+      context.commit("endload");
+      return true;
+    } else {                                                                  // rcase 2: range of dates with today, rcase 3: range of dates without today
         let todaydata = data.rcase == 2;
-        let totaldays = data.interval.length;
+        line_result.properties.labels["xAxis"] = data.interval;
         const storage = getStorage();
         await get(
           child(
@@ -406,9 +570,17 @@ export default createStore({
           if (users.val()) {
             voterates.totalusers = Object.keys(users.val()).length;
           }
-
         });
-        for (const index in data.interval) {
+        for (const index in data.interval) {          // one loop for each date included in the rage
+          resul_t2 = {
+            data:
+            {
+              "a": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              "b": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              "c": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              "d": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            },
+          }
           let dateindex = index
           for (const key in detailsdata) {
             for (const index in detailsdata[key]) {
@@ -436,7 +608,6 @@ export default createStore({
                 dataResult = Object.values(response.val());
                 validdays += 1
               }
-
             })
           } else {
             await get(child(dbRef, fullpath))
@@ -486,119 +657,88 @@ export default createStore({
               .catch((error) => {
                 console.log(error);
               });
-
           }
-
-
           if (dataResult.length != 0) {
-
             for (const key in dataResult) {
               if (!voterates.all.includes(key)) {
                 voterates.all.push(key)
               }
-              // voterates.all[0] += 1
-
               let user = dataResult[key];
               for (const key2 in dataResult[key].feedback) {
                 let question = key2;
-                // resul_t.data[question][9] += voterates.totalusers - dataResult.length
                 detailsdata[question][9]['data'][dateindex] = voterates.totalusers - dataResult.length
-                // voterates[question][0] += 1
                 if (!voterates[question].includes(key)) {
                   voterates[question].push(key)
                 }
                 if (user.feedback[question].a == 1) {
-                  //   voterates[question][0] += 1
                   detailsdata[question][0]['data'][dateindex] += 1
-                  //resul_t.totals[question] += 1;
                   resul_t.data[question][0] += 1
+                  resul_t2.data[question][0] += 1
                 } else if (user.feedback[question].a == 2) {
                   if (user.feedback[question].s == 0) {
-                    //   voterates[question][0] += 1
                     detailsdata[question][1]['data'][dateindex] += 1
-                    //resul_t.totals[question] += 1;
                     resul_t.data[question][1] += 1
+                    resul_t2.data[question][1] += 1
                   }
                   if (user.feedback[question].s == 1) {
                     detailsdata[question][2]['data'][dateindex] += 1
-                    //resul_t.totals[question] += 1;
                     resul_t.data[question][2] += 1
-                    //   voterates[question][0] += 1
+                    resul_t2.data[question][2] += 1
                   }
                   if (user.feedback[question].s == 2) {
                     detailsdata[question][3]['data'][dateindex] += 1
-                    //resul_t.totals[question] += 1;
                     resul_t.data[question][3] += 1
-                    //   voterates[question][0] += 1
+                    resul_t2.data[question][3] += 1
                   }
                   if (user.feedback[question].s == 3) {
                     detailsdata[question][4]['data'][dateindex] += 1
-                    //resul_t.totals[question] += 1;
                     resul_t.data[question][4] += 1
-                    //   voterates[question][0] += 1
+                    resul_t2.data[question][4] += 1
                   }
                 } else if (user.feedback[question].a == 3) {
                   if (user.feedback[question].s == 0) {
-
                     detailsdata[question][5]['data'][dateindex] += 1
-
-                    //resul_t.totals[question] += 1;
-                    //   voterates[question][0] += 1
                     resul_t.data[question][5] += 1
-
+                    resul_t2.data[question][5] += 1
                   }
                   if (user.feedback[question].s == 1) {
-                    //   voterates[question][0] += 1
                     detailsdata[question][6]['data'][dateindex] += 1
-
-                    //resul_t.totals[question] += 1;
-
                     resul_t.data[question][6] += 1
-
+                    resul_t2.data[question][6] += 1
                   }
                   if (user.feedback[question].s == 2) {
-                    //   voterates[question][0] += 1
-
                     detailsdata[question][7]['data'][dateindex] += 1
-
-                    //resul_t.totals[question] += 1;
-
                     resul_t.data[question][7] += 1
-
+                    resul_t2.data[question][7] += 1
                   }
                   if (user.feedback[question].s == 3) {
-                    //   voterates[question][0] += 1
                     detailsdata[question][8]['data'][dateindex] += 1
-                    //resul_t.totals[question] += 1;
                     resul_t.data[question][8] += 1
-
+                    resul_t2.data[question][8] += 1
                   }
                 }
-
               }
             }
           }
+          let questions = ["a", "b", "c", "d"]
+          for (let index = 0; index < questions.length; index++) {
+            let result = resul_t2.data[questions[index]]
+            let happy = result[0]
+            let neutral = result[1] + result[2] + result[3] + result[4]
+            let sad = result[5] + result[6] + result[7] + result[8]
+            if (happy >= neutral && happy >= sad) {
+              line_result.data[questions[index]].push(2)
+            } else if (neutral >= happy && neutral >= sad) {
+              line_result.data[questions[index]].push(1)
+            } else {
+              line_result.data[questions[index]].push(0)
+            }
+          }
         }
-
         voterates.totalusers = voterates.totalusers * validdays
         for (const q in resul_t.data) {
           resul_t.data[q][9] = voterates.totalusers - voterates.all.length
         }
-
-        // await get(
-        //   child(
-        //     dbRef,
-        //     allSpaces
-        //       ? "buildings/" + selectedbuilding + "/users"
-        //       : "spacesID/" + selectedspace + "/users"
-        //   )
-        // ).then((users) => {
-        //   if (users.val()) {
-        //     voterates.totalusers = Object.keys(users.val()).length * validdays;
-        //   }
-
-        // });
-
         if (data.interval.length > 5) {
           for (const q in detailsdata) {
             for (const f in detailsdata[q]) {
@@ -609,13 +749,13 @@ export default createStore({
         } else {
           rangelabels = data.interval
         }
-
         context.state.feedbackresult = {
-          data1: resul_t,
-          details: detailsdata,
-          labels: rangelabels,
-          voterates: {
-            a: {
+          linedata: line_result,
+          data1: resul_t,                                           // result of main page execept vote rates
+          details: detailsdata,                                     // result of detailed data
+          labels: rangelabels,                                      // all labels
+          voterates: {                                              // different vote rate graphs
+            a: {                                                    
               data: [voterates.a.length, voterates.totalusers - voterates.a.length],
               percentage: (voterates.a.length / voterates.totalusers) * 100
             },
@@ -631,7 +771,7 @@ export default createStore({
               data: [voterates.a.length, voterates.totalusers - voterates.d.length],
               percentage: (voterates.d.length / voterates.totalusers) * 100
             },
-            all: {
+            all: {                                                   // vote rate main page
               data: [voterates.all.length, voterates.totalusers - voterates.all.length],
               percentage: (voterates.all.length / voterates.totalusers) * 100
             },
@@ -641,172 +781,11 @@ export default createStore({
               labels: ["Voted", "Not voted"],
             }
           },
-          // data2: {
-          //   data: [votedusers, totalusers - votedusers],
-          //   colors: ["#375A64", "#dddddd"],
-          //   labels: ["Voted", "Not voted"],
-          //   percentage: (votedusers / totalusers) * 100,
-          // },
-
         }
-        console.log(context.state.feedbackresult)
-        context.commit("endload");
-        return true;
-      } else {
-
-        for (const key in detailsdata) {
-          for (const index in detailsdata[key]) {
-            detailsdata[key][index].data[0] = 0
-            detailsdata[key][index].backgroundColor = properties.colors[index]
-            detailsdata[key][index].label = properties.labels[key][index]
-          }
-        }
-        await get(
-          child(
-            dbRef,
-            allSpaces
-              ? "buildings/" + selectedbuilding + "/users"
-              : "spacesID/" + selectedspace + "/users"
-          )
-        ).then((users) => {
-
-          if (users.val()) {
-            voterates.totalusers = Object.keys(users.val()).length;
-          }
-
-        });
-
-        await get(child(dbRef, dbsource + dbpath)).then(async (response) => {
-          if (response.val()) {
-            let totalvotes = Object.keys(response.val()).length
-            // voterates.all[0] = totalvotes
-            for (const key in response.val()) {
-
-
-              let user = response.val()[key];
-              if (!voterates.all.includes(key)) {
-                voterates.all.push(key)
-              }
-              for (const key2 in response.val()[key].feedback) {
-                let question = key2;
-                if (!voterates[question].includes(key)) {
-                  voterates[question].push(key)
-                }
-
-                //hon w hala2 e5er 5otwe nzabet l total bl percentage bl rcase 1 (1 day selected)
-                detailsdata[question][9]['data'][0] = voterates.totalusers - totalvotes
-                resul_t.data[question][9] = voterates.totalusers - totalvotes
-                // voterates[question][0] += 1
-                if (user.feedback[question].a == 1) {
-                  //   voterates[question][0] += 1
-                  detailsdata[question][0]['data'][0] += 1
-                  //resul_t.totals[question] += 1;
-                  resul_t.data[question][0] += 1
-
-                } else if (user.feedback[question].a == 2) {
-                  if (user.feedback[question].s == 0) {
-                    //   voterates[question][0] += 1
-                    detailsdata[question][1]['data'][0] += 1
-                    //resul_t.totals[question] += 1;
-                    resul_t.data[question][1] += 1
-
-                  }
-                  if (user.feedback[question].s == 1) {
-                    detailsdata[question][2]['data'][0] += 1
-                    //resul_t.totals[question] += 1;
-                    resul_t.data[question][2] += 1
-                    //   voterates[question][0] += 1
-                  }
-                  if (user.feedback[question].s == 2) {
-                    detailsdata[question][3]['data'][0] += 1
-                    //resul_t.totals[question] += 1;
-                    resul_t.data[question][3] += 1
-                    //   voterates[question][0] += 1
-                  }
-                  if (user.feedback[question].s == 3) {
-                    detailsdata[question][4]['data'][0] += 1
-                    //resul_t.totals[question] += 1;
-                    resul_t.data[question][4] += 1
-                    //   voterates[question][0] += 1
-                  }
-                } else if (user.feedback[question].a == 3) {
-                  if (user.feedback[question].s == 0) {
-                    detailsdata[question][5]['data'][0] += 1
-                    //resul_t.totals[question] += 1;
-                    resul_t.data[question][5] += 1
-                    //   voterates[question][0] += 1
-                  }
-                  if (user.feedback[question].s == 1) {
-                    detailsdata[question][6]['data'][0] += 1
-                    //resul_t.totals[question] += 1;
-                    resul_t.data[question][6] += 1
-                    //   voterates[question][0] += 1
-                  }
-                  if (user.feedback[question].s == 2) {
-                    detailsdata[question][7]['data'][0] += 1
-                    //resul_t.totals[question] += 1;
-                    resul_t.data[question][7] += 1
-                    //   voterates[question][0] += 1
-                  }
-                  if (user.feedback[question].s == 3) {
-                    //   voterates[question][0] += 1
-                    detailsdata[question][8]['data'][0] += 1
-                    //resul_t.totals[question] += 1;
-                    resul_t.data[question][8] += 1
-
-                  }
-                }
-
-              }
-            }
-          }
-
-
-        });
-
-        context.state.feedbackresult = {
-          data1: resul_t,
-          details: detailsdata,
-          labels: [new Date(data.interval[0])
-            .toISOString()
-            .split("T")[0]],
-
-          voterates: {
-            a: {
-              data: [voterates.a.length, voterates.totalusers - voterates.a.length],
-              percentage: (voterates.a.length / voterates.totalusers) * 100
-            },
-            b: {
-              data: [voterates.a.length, voterates.totalusers - voterates.b.length],
-              percentage: (voterates.b.length / voterates.totalusers) * 100
-            },
-            c: {
-              data: [voterates.a.length, voterates.totalusers - voterates.c.length],
-              percentage: (voterates.c.length / voterates.totalusers) * 100
-            },
-            d: {
-              data: [voterates.a.length, voterates.totalusers - voterates.d.length],
-              percentage: (voterates.d.length / voterates.totalusers) * 100
-            },
-            all: {
-              data: [voterates.all.length, voterates.totalusers - voterates.all.length],
-              percentage: (voterates.all.length / voterates.totalusers) * 100
-            },
-            total: voterates.totalusers,
-            properties: {
-              colors: ["#375A64", "#dddddd"],
-              labels: ["Voted", "Not voted"],
-            }
-          },
-        };
-        console.log(context.state.feedbackresult)
         context.commit("endload");
         return true;
       }
-
     },
-
-
 
     async getnotificationsData(context, data) {
       context.state.notificationsdata = null;
@@ -818,13 +797,11 @@ export default createStore({
         colors: [
           "#87bd45", "#eb5547",
           "#e9c131",
-
         ],
         labels: [
           "Coming tomorrow",
           "Not coming",
           "Maybe",
-
         ]
       }
       let resul_t = {
@@ -835,7 +812,6 @@ export default createStore({
       let selectedbuilding = data.building;
       let selectedspace = data.space;
       const dbRef = ref(getDatabase());
-
       let dbpath = "";
       let dbsource = "";
       if (allSpaces) {
@@ -845,7 +821,6 @@ export default createStore({
         dbsource = "inOfficeTomorrowBuildingSpace/";
         dbpath = selectedbuilding + "/" + data.space;
       }
-
       await get(child(dbRef, dbsource + dbpath)).then(async (response) => {
         for (const key in response.val()) {
           voterates.voted += 1
@@ -857,7 +832,6 @@ export default createStore({
           } else {
             resul_t.data[2] += 1
           }
-
         }
       });
       await get(
@@ -882,30 +856,20 @@ export default createStore({
           }
         },
       };
-
       context.commit("endload");
       return true;
     },
 
-
-
-
-
     async getHomeFilters(context) {
       context.commit("load");
-
       const dbRef = ref(getDatabase());
       let datasource = "";
-      let result1 = {}
-      if (context.state.user.admin == 1) {
-        await get(child(dbRef, "buildings")).then(
-          async (response) => {
-
-
-
-
-            for (const key in response.val()) {
-              if (key != 'block' && response.child(key).hasChild('spacesID')) {
+      let result1 = {}                       
+      if (context.state.user.admin == 1) {                                           // IF ADMIN
+        await get(child(dbRef, "buildings")).then(                                   // search buildings in database
+          async (response) => {                                                      // response = building array
+            for (const key in response.val()) {                                      // key = building
+              if (key != 'block' && response.child(key).hasChild('spacesID')) {      // admin can have blocks while the owner can't (block = useless building)
                 result1[key] = {
                   floors: [
                     { name: 'All floors', nr: "0" }
@@ -930,15 +894,13 @@ export default createStore({
             context.state.homefilters.filled = true;
           }
         );
-      } else {
+      } else {                                                                        // IF OWNER
         await get(child(dbRef, "uidBuildings/" + auth.currentUser.uid)).then(
-          async (response) => {
+          async (response) => {                                                       // reponse = array of onwer's buildings
             // if (response.val()) {
             let result1 = {}
             Object.values(response.val()).forEach((child) => {
               for (const key in child) {
-
-
                 result1[key] = {
                   floors: [
                     { name: 'All floors', nr: "0" }
@@ -959,48 +921,21 @@ export default createStore({
                     }
                   });
                 }
-
               }
             });
-
             context.state.homefilters.buildings = result1;
-
-
             context.state.homefilters.filled = true;
           }
-
-          //}
         );
       }
-
-
       context.commit("endload");
     },
-
-
-
-
-
-    // checkBuilding(context) {
-    //   const dbRef = ref(getDatabase());
-    //   get(child(dbRef, "uidBuildings/" + auth.currentUser.uid)).then(
-    //     async (response) => {
-    //       if (response.val()) {
-    //         context.state.hasbuilding = true;
-    //       } else {
-    //         context.state.hasbuilding = false;
-    //       }
-
-    //     }
-    //   );
-    // },
 
     async getnotificationsEntries(context) {
       // let entries = context.state.notificationsEntries.buildings
       context.commit("load");
       const dbRef = ref(getDatabase());
       let result = {
-
       }
       await get(child(dbRef, "uidBuildings/" + auth.currentUser.uid)).then(
         async (response) => {
@@ -1022,23 +957,19 @@ export default createStore({
                     result[key].spaces.push(key1)
                   }
                 });
-
-
               }
             }
           });
-
         }
       );
-
       context.state.notificationsEntries.buildings = result
       context.state.notificationsEntries.filled = true;
       context.commit("endload");
-
       return true
     },
 
     //setters--------------------
+
     addbuilding(context, data) {
       context.commit("load");
       set(ref(db, "/adminRequests/createBuilding/"), data).then((value) => {
@@ -1052,6 +983,7 @@ export default createStore({
         router.back();
       });
     },
+
     editbuilding(context, data) {
       context.commit("load");
       set(
@@ -1163,19 +1095,19 @@ export default createStore({
     },
 
     async signin(context, data) {
-      context.commit("load");
+      context.commit("load");                                         // call mutation load (L.52)
       signInWithEmailAndPassword(auth, data.email, data.pass)
-        .then(async (value) => {
-          const dbRef = ref(getDatabase());
-          let hasbuilding = false;
-          await get(child(dbRef, "uidBuildings/" + auth.currentUser.uid)).then(
+        .then(async (value) => {                                      // TRY
+          const dbRef = ref(getDatabase());                           // read data from the database with dbRef
+          let hasbuilding = false;                                    // does the user have a building
+          await get(child(dbRef, "uidBuildings/" + auth.currentUser.uid)).then(     // get data from the data base -> does the user have a building
             async (response) => {
               if (response.val()) {
-                hasbuilding = true;
+                hasbuilding = true;                                                 // user has a building
               }
             })
-          get(child(dbRef, "uids/" + value.user.uid)).then(data => {
-            context.state.user = {
+          get(child(dbRef, "uids/" + value.user.uid)).then(data => {                // get the user data from the back end
+            context.state.user = {                                                  // context == this
               hasbuilding: hasbuilding,
               user: true,
               admin: data.child("isAdmin").val(),
@@ -1187,7 +1119,7 @@ export default createStore({
           });
 
         })
-        .catch((error) => {
+        .catch((error) => {                                           // CATCH
           context.commit("showalert", {
             type: "error",
             text: error.toString(),

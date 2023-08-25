@@ -100,7 +100,7 @@ export default {
         }
         if (page == 'qrcodes') {
           var QRCode = require('qrcode')
-          await QRCode.toDataURL(key, {
+          await QRCode.toDataURL("www.comfortline.com/votes/" + key, {
             rendererOpts: {
               quality: 0.5// Set the image quality to 0.8 (80%)
             }
