@@ -784,7 +784,7 @@ export default createStore({                                              // ini
         }
         context.commit("endload");
         return true;
-      }
+    }
     },
 
     async getnotificationsData(context, data) {
