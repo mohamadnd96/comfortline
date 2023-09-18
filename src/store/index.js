@@ -21,7 +21,6 @@ import {
   getDownloadURL,
   listAll,
 } from "firebase/storage";
-
 import router from "@/router";
 export default createStore({                                              // initializes and stores the variables of the application
   state: {
@@ -877,15 +876,17 @@ export default createStore({                                              // ini
                   spaces: [{ name: 'All spaces', nr: "0" }],
                   data: { name: response.val()[key].companyName, nr: key }
                 }
+                const includedFloors = []
                 Object.keys(response.val()[key].spacesID).forEach((key1) => {
                   const floor = key1.substring(0, 6)
                   const floorName = response.val()[key]['spacesID'][key1].floorName
                   const spaceName = response.val()[key]['spacesID'][key1].spaceName
-                  if (result1[key].floors.includes(floor)) {
+                  if (includedFloors.includes(floor)) {
                     result1[key].spaces.push({ name: spaceName, nr: key1 })
                   } else {
                     result1[key].floors.push({ name: (typeof floorName != "undefined" && floorName != null) ? floorName : floor, nr: floor })
                     result1[key].spaces.push({ name: spaceName, nr: key1 })
+                    includedFloors.push(floor)
                   }
                 });
               }
@@ -897,7 +898,6 @@ export default createStore({                                              // ini
       } else {                                                                        // IF OWNER
         await get(child(dbRef, "uidBuildings/" + auth.currentUser.uid)).then(
           async (response) => {                                                       // reponse = array of onwer's buildings
-            // if (response.val()) {
             let result1 = {}
             Object.values(response.val()).forEach((child) => {
               for (const key in child) {
@@ -909,15 +909,17 @@ export default createStore({                                              // ini
                   data: { name: child[key].companyName, nr: key }
                 }
                 if (child[key].spacesID) {
+                  const includedFloors = []
                   Object.keys(child[key].spacesID).forEach((key1) => {
                     const floor = key1.substring(0, 6)
                     const floorName = child[key]['spacesID'][key1].floorName
                     const spaceName = child[key]['spacesID'][key1].spaceName
-                    if (result1[key].floors.includes(floor)) {
+                    if (includedFloors.includes(floor)) {
                       result1[key].spaces.push({ name: spaceName, nr: key1 })
                     } else {
                       result1[key].floors.push({ name: (typeof floorName != "undefined" && floorName != null) ? floorName : floor, nr: floor })
                       result1[key].spaces.push({ name: spaceName, nr: key1 })
+                      includedFloors.push(floor)
                     }
                   });
                 }
