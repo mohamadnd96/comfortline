@@ -399,7 +399,8 @@ export default createStore({                                              // ini
         c: [],
         d: [],
         all: [],
-        totalusers: 0
+        // totalusers: 0,
+        totalSpace: 0                                                         // voterates depends on working stations
       }
       let dbpath = "";
       let dbsource = "";
@@ -430,18 +431,40 @@ export default createStore({                                              // ini
           detailsdata[key][index].label = properties.labels[key][index]
         }
       }
-      await get(
-        child(
-          dbRef,
-          allSpaces
-            ? "buildings/" + selectedbuilding + "/users"
-            : "spacesID/" + selectedspace + "/users"
-        )
-      ).then((users) => {
-        if (users.val()) {
-          voterates.totalusers = Object.keys(users.val()).length;
+      if(allSpaces) {
+        await get(
+          child(dbRef, "buildings/" + selectedbuilding + "/spacesID")
+          ).then((spaces) => {
+          if(spaces.val()) {
+            for(var space in spaces.val()) {
+              get(
+                child(dbRef, "buildings/" + selectedbuilding + "/spacesID/" + space + "/workingStations")
+              ).then((nbStations) => {
+                voterates.totalSpace += Number(nbStations.val());
+              })
+            }
+          }
         }
-      });
+        )
+      } else {
+        await get(
+          child(dbRef, "spacesID/" + selectedspace + "/workingStations")
+          ).then((nbStations) => {
+            voterates.totalSpace += Number(nbStations.val());
+          })
+      }
+      // await get(
+      //   child(
+      //     dbRef,
+      //     allSpaces
+      //       ? "buildings/" + selectedbuilding + "/users"
+      //       : "spacesID/" + selectedspace + "/users"
+      //   )
+      // ).then((users) => {
+      //   if (users.val()) {
+      //     voterates.totalusers = Object.keys(users.val()).length;
+      //   }
+      // });
       await get(child(dbRef, dbsource + dbpath)).then(async (response) => {
         if (response.val()) {                                                     // Object.keys(response.val()) = list of all user voting
           let totalvotes = Object.keys(response.val()).length
@@ -455,8 +478,8 @@ export default createStore({                                              // ini
               if (!voterates[question].includes(key)) {
                 voterates[question].push(key)
               }
-              detailsdata[question][9]['data'][0] = voterates.totalusers - totalvotes
-              resul_t.data[question][9] = voterates.totalusers - totalvotes
+              detailsdata[question][9]['data'][0] = voterates.totalSpace > totalvotes ? (voterates.totalSpace - totalvotes) : 0
+              resul_t.data[question][9] = voterates.totalSpace > totalvotes ? (voterates.totalSpace - totalvotes) : 0
               if (user.feedback[question].a == 1) {                                               // HAPPY
                 detailsdata[question][0]['data'][0] += 1
                 resul_t.data[question][0] += 1
@@ -497,7 +520,6 @@ export default createStore({                                              // ini
                   resul_t.data[question][8] += 1
                 }
               }
-
             }
           }
         }
@@ -525,52 +547,75 @@ export default createStore({                                              // ini
           .split("T")[0]],
         voterates: {
           a: {
-            data: [voterates.a.length, voterates.totalusers - voterates.a.length],
-            percentage: (voterates.a.length / voterates.totalusers) * 100
+            data: [voterates.a.length, voterates.totalSpace>voterates.a.length ? voterates.totalSpace - voterates.a.length : 0],
+            percentage: voterates.totalSpace>voterates.a.length ? (voterates.a.length / voterates.totalSpace) * 100 : 100
           },
           b: {
-            data: [voterates.a.length, voterates.totalusers - voterates.b.length],
-            percentage: (voterates.b.length / voterates.totalusers) * 100
+            data: [voterates.a.length, voterates.totalSpace>voterates.b.length ? voterates.totalSpace - voterates.b.length : 0],
+            percentage: voterates.totalSpace>voterates.b.length ? (voterates.b.length / voterates.totalSpace) * 100 : 100
           },
           c: {
-            data: [voterates.a.length, voterates.totalusers - voterates.c.length],
-            percentage: (voterates.c.length / voterates.totalusers) * 100
+            data: [voterates.a.length, voterates.totalSpace>voterates.c.length ? voterates.totalSpace - voterates.c.length : 0],
+            percentage: voterates.totalSpace>voterates.c.length ? (voterates.c.length / voterates.totalSpace) * 100 : 100
           },
           d: {
-            data: [voterates.a.length, voterates.totalusers - voterates.d.length],
-            percentage: (voterates.d.length / voterates.totalusers) * 100
+            data: [voterates.a.length, voterates.totalSpace>voterates.d.length ? voterates.totalSpace - voterates.d.length : 0],
+            percentage: voterates.totalSpace>voterates.d.length ? (voterates.d.length / voterates.totalSpace) * 100 : 100
           },
           all: {
-            data: [voterates.all.length, voterates.totalusers - voterates.all.length],
-            percentage: (voterates.all.length / voterates.totalusers) * 100
+            data: [voterates.all.length, voterates.totalSpace>voterates.all.length ? voterates.totalSpace - voterates.all.length : 0],
+            percentage: voterates.totalSpace>voterates.all.length ? (voterates.all.length / voterates.totalSpace) * 100 : 100
           },
-          total: voterates.totalusers,
+          total: voterates.totalSpace,
           properties: {
             colors: ["#375A64", "#dddddd"],
             labels: ["Voted", "Not voted"],
           }
         },
       };
-      console.log(context.state.feedbackresult)
       context.commit("endload");
       return true;
     } else {                                                                  // rcase 2: range of dates with today, rcase 3: range of dates without today
         let todaydata = data.rcase == 2;
         line_result.properties.labels["xAxis"] = data.interval;
         const storage = getStorage();
-        await get(
-          child(
-            dbRef,
-            allSpaces
-              ? "buildings/" + selectedbuilding + "/users"
-              : "spacesID/" + selectedspace + "/users"
-          )
-        ).then((users) => {
-          if (users.val()) {
-            voterates.totalusers = Object.keys(users.val()).length;
+        if(allSpaces) {
+          await get(
+            child(dbRef, "buildings/" + selectedbuilding + "/spacesID")
+          ).then((spaces) => {
+            if(spaces.val()) {
+              for(var space in spaces.val()) {
+                get(
+                  child(dbRef, "buildings/" + selectedbuilding + "/spacesID/" + space + "/workingStations")
+                ).then((nbStations) => {
+                  voterates.totalSpace += Number(nbStations.val());
+                })
+              }
+            }
           }
-        });
+          )
+        } else {
+          await get(
+            child(
+              dbRef, "spacesID/" + selectedspace + "/workingStations")
+              ).then((nbStations) => {
+                voterates.totalSpace += Number(nbStations.val());
+            })
+        }
+        // await get(
+        //   child(
+        //     dbRef,
+        //     allSpaces
+        //       ? "buildings/" + selectedbuilding + "/users"
+        //       : "spacesID/" + selectedspace + "/users"
+        //   )
+        // ).then((users) => {
+        //   if (users.val()) {
+        //     voterates.totalusers = Object.keys(users.val()).length;
+        //   }
+        // });
         for (const index in data.interval) {          // one loop for each date included in the rage
+          dataResult = [];
           resul_t2 = {
             data:
             {
@@ -600,7 +645,6 @@ export default createStore({                                              // ini
             "/" +
             dbsource +
             dbpath.replace(selectedbuilding + "/", "");
-
           if (dateindex == data.interval.length - 1 && todaydata == true) {
             await get(child(dbRef, dbsource + dbpath)).then(async (response) => {
               if (response.val()) {
@@ -665,7 +709,7 @@ export default createStore({                                              // ini
               let user = dataResult[key];
               for (const key2 in dataResult[key].feedback) {
                 let question = key2;
-                detailsdata[question][9]['data'][dateindex] = voterates.totalusers - dataResult.length
+                detailsdata[question][9]['data'][dateindex] = voterates.totalSpace>dataResult.length ? (voterates.totalSpace - dataResult.length) : 0
                 if (!voterates[question].includes(key)) {
                   voterates[question].push(key)
                 }
@@ -734,9 +778,10 @@ export default createStore({                                              // ini
             }
           }
         }
-        voterates.totalusers = voterates.totalusers * validdays
+        // voterates.totalusers = voterates.totalusers * validdays
+        voterates.totalSpace = voterates.totalSpace * data.interval.length
         for (const q in resul_t.data) {
-          resul_t.data[q][9] = voterates.totalusers - voterates.all.length
+          resul_t.data[q][9] = voterates.totalSpace > voterates.all.length ? (voterates.totalSpace - voterates.all.length) : 0
         }
         if (data.interval.length > 5) {
           for (const q in detailsdata) {
@@ -754,27 +799,27 @@ export default createStore({                                              // ini
           details: detailsdata,                                     // result of detailed data
           labels: rangelabels,                                      // all labels
           voterates: {                                              // different vote rate graphs
-            a: {                                                    
-              data: [voterates.a.length, voterates.totalusers - voterates.a.length],
-              percentage: (voterates.a.length / voterates.totalusers) * 100
+            a: {
+              data: [voterates.a.length, voterates.totalSpace>voterates.a.length ? voterates.totalSpace - voterates.a.length : 0],
+              percentage: voterates.totalSpace>voterates.a.length ? (voterates.a.length / voterates.totalSpace) * 100 : 100
             },
             b: {
-              data: [voterates.a.length, voterates.totalusers - voterates.b.length],
-              percentage: (voterates.b.length / voterates.totalusers) * 100
+              data: [voterates.a.length, voterates.totalSpace>voterates.b.length ? voterates.totalSpace - voterates.b.length : 0],
+              percentage: voterates.totalSpace>voterates.b.length ? (voterates.b.length / voterates.totalSpace) * 100 : 100
             },
             c: {
-              data: [voterates.a.length, voterates.totalusers - voterates.c.length],
-              percentage: (voterates.c.length / voterates.totalusers) * 100
+              data: [voterates.a.length, voterates.totalSpace>voterates.c.length ? voterates.totalSpace - voterates.c.length : 0],
+              percentage: voterates.totalSpace>voterates.c.length ? (voterates.c.length / voterates.totalSpace) * 100 : 100
             },
             d: {
-              data: [voterates.a.length, voterates.totalusers - voterates.d.length],
-              percentage: (voterates.d.length / voterates.totalusers) * 100
+              data: [voterates.a.length, voterates.totalSpace>voterates.d.length ? voterates.totalSpace - voterates.d.length : 0],
+              percentage: voterates.totalSpace>voterates.d.length ? (voterates.d.length / voterates.totalSpace) * 100 : 100
             },
-            all: {                                                   // vote rate main page
-              data: [voterates.all.length, voterates.totalusers - voterates.all.length],
-              percentage: (voterates.all.length / voterates.totalusers) * 100
+            all: {
+              data: [voterates.all.length, voterates.totalSpace>voterates.all.length ? voterates.totalSpace - voterates.all.length : 0],
+              percentage: voterates.totalSpace>voterates.all.length ? (voterates.all.length / voterates.totalSpace) * 100 : 100
             },
-            total: voterates.totalusers,
+            total: voterates.totalSpace,
             properties: {
               colors: ["#375A64", "#dddddd"],
               labels: ["Voted", "Not voted"],
@@ -783,14 +828,15 @@ export default createStore({                                              // ini
         }
         context.commit("endload");
         return true;
-    }
+     }
     },
 
     async getnotificationsData(context, data) {
       context.state.notificationsdata = null;
       let voterates = {
         voted: 0,
-        totalusers: 0
+        // totalusers: 0,
+        totalSpace: 0
       }
       let properties = {
         colors: [
@@ -833,22 +879,45 @@ export default createStore({                                              // ini
           }
         }
       });
-      await get(
-        child(
-          dbRef,
-          allSpaces
-            ? "buildings/" + selectedbuilding + "/users"
-            : "spacesID/" + selectedspace + "/users"
+      if(allSpaces) {
+        await get(
+          child(dbRef, "buildings/" + selectedbuilding + "/spacesID")
+        ).then((spaces) => {
+          if(spaces.val()) {
+            for(var space in spaces.val()) {
+              get(
+                child(dbRef, "buildings/" + selectedbuilding + "/spacesID/" + space + "/workingStations")
+              ).then((nbStations) => {
+                voterates.totalSpace += nbStations;
+              })
+            }
+          }
+        }
         )
-      ).then((users) => {
-        voterates.totalusers = Object.keys(users.val()).length;
-      });
+      } else {
+        await get(
+          child(
+            dbRef, "spacesID/" + selectedspace + "/workingStations")
+            ).then((nbStations) => {
+              voterates.totalSpace += nbStations;
+          })
+      }
+      // await get(
+      //   child(
+      //     dbRef,
+      //     allSpaces
+      //       ? "buildings/" + selectedbuilding + "/users"
+      //       : "spacesID/" + selectedspace + "/users"
+      //   )
+      // ).then((users) => {
+      //   voterates.totalusers = Object.keys(users.val()).length;
+      // });
       context.state.notificationsdata = {
         answers: resul_t,
         voterates: {
           voted: voterates.voted,
-          notvoted: voterates.totalusers - voterates.voted,
-          total: voterates.totalusers,
+          notvoted: voterates.totalSpace > voterates.voted ? (voterates.totalSpace - voterates.voted) : 0,
+          total: voterates.totalSpace,
           properties: {
             colors: ["#375A64", "#dddddd"],
             labels: ["Answered", "Not answered"],

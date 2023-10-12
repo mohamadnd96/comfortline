@@ -69,7 +69,6 @@ export default {
     },
     methods: {
         setChart() {
-            console.log(this.path)
             let path = ''
             if (this.$route.params.question.includes('air')) {
                 path = 'a'

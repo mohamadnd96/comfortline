@@ -202,8 +202,6 @@ export default {
     }
   },
   async mounted() {                                         // automaticly done before loading the page
-    // console.log(this.$route.params)
-    // alert("mount");
     if (this.$store.state.user.hasbuilding || this.$store.state.user.admin) {
       await this.$store.dispatch("getHomeFilters");
       this.dateinterval = [this.today, this.today];

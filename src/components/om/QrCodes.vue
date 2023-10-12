@@ -69,27 +69,6 @@ export default {
             pdf.setFontSize(20);
             pdf.text(spaceid, 90, 205);
             pdf.output('dataurlnewwindow', spacename)
-
-            // const domElement = document.createElement("div")
-            // domElement.innerText="askdasdasdk"
-
-
-            // html2canvas(domElement, {
-            //     onclone: (document) => {
-            //         console.log(document)
-            //         let header = document.getElementById('header');
-            //         document.getElementById('qrcode').style.width="600px"
-            //         header.style.display = 'block'
-            //         header.removeChild(header.children[1])
-            //     }
-            // })
-            //     .then((canvas) => {
-            //         const img = canvas.toDataURL('image/png')
-            //         const pdf = new jsPdf()
-            //         pdf.addImage(img, 'png', 0, 0)
-            //         pdf.output('dataurlnewwindow', space)
-            //     })
-
         },
 
 

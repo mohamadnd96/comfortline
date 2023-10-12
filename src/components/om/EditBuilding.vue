@@ -74,15 +74,6 @@ export default {
   },
 
   methods: {
-    // disable(i1, i2) {
-    //   console.log(document.getElementById(i1 + 'f' + i2).value)
-    //   // if (!this.structure.formula[i1].spaces[i2].squareMeters > 0) {
-    //   //   this.structure.formula[i1].spaces[i2].squareMeters = 0
-    //   // } else if (this.structure.formula[i1].spaces[i2].squareMeters == '') {
-    //   //   this.structure.formula[i1].spaces[i2].squareMeters = ''
-    //   // }
-
-    // },
     expandCollapse(index) {
       this.expanded[index] = !this.expanded[index];
     },
